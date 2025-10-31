@@ -13,10 +13,10 @@ module fetch(
 
     mux m0(.a_true(ex_mem_npc), .b_false(next_pc), .sel(ex_mem_pc_src), .y(pc_mux));
     pc pc0(.clk(clk), .rst(rst), .pc_in(pc_mux), .pc_out(pc_out));
-    incrementer in0(.pcin(pc_out), .pcout(next_pc)); // FIXED: no clk/rst
-    instrMem inMem0(.addr(pc_out), .data(instr_data)); // FIXED: combinational
+    incrementer in0(.pcin(pc_out), .pcout(next_pc)); 
+    instrMem inMem0(.addr(pc_out), .data(instr_data));
     ifIdLatch ifIdLatch0(.clk(clk), .rst(rst), .pc_in(next_pc), .instr_in(instr_data),
-                         .pc_out(if_id_npc), .instr_out(if_id_instr)); // FIXED: use next_pc
+                         .pc_out(if_id_npc), .instr_out(if_id_instr));
 
 endmodule
 
