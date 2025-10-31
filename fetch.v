@@ -13,9 +13,10 @@ module fetch(
 
     mux m0(.a_true(ex_mem_npc), .b_false(next_pc), .sel(ex_mem_pc_src), .y(pc_mux));
     pc pc0(.clk(clk), .rst(rst), .pc_in(pc_mux), .pc_out(pc_out));
-    incrementer in0(.clk(clk), .rst(rst), .pcin(pc_out), .pcout(next_pc));
-    instrMem inMem0(.clk(clk), .rst(rst), .addr(pc_out), .data(instr_data));
-    ifIdLatch ifIdLatch0(.clk(clk), .rst(rst), .pc_in(pc_out), .instr_in(instr_data), .pc_out(if_id_npc), .instr_out(if_id_instr));
+    incrementer in0(.pcin(pc_out), .pcout(next_pc)); // FIXED: no clk/rst
+    instrMem inMem0(.addr(pc_out), .data(instr_data)); // FIXED: combinational
+    ifIdLatch ifIdLatch0(.clk(clk), .rst(rst), .pc_in(next_pc), .instr_in(instr_data),
+                         .pc_out(if_id_npc), .instr_out(if_id_instr)); // FIXED: use next_pc
 
 endmodule
 
@@ -39,6 +40,7 @@ module ifIdLatch(
     end
 endmodule
 
+
 module mux (
     input wire [31:0] a_true,
     input wire [31:0] b_false,
@@ -52,6 +54,7 @@ module mux (
             y = b_false;
     end
 endmodule
+
 
 module pc (
     input wire clk,
@@ -67,29 +70,19 @@ module pc (
     end
 endmodule
 
-module incrementer ( //(adder)
-    input wire clk,
-    input wire rst,
+
+module incrementer (
     input wire [31:0] pcin,
-    output reg [31:0] pcout
+    output wire [31:0] pcout
 );
-    always @(posedge clk or posedge rst) begin
-        if (rst)
-            pcout <= 32'b0;
-        else
-            pcout <= pcin + 32'd4;
-    end
+    assign pcout = pcin + 32'd4;
 endmodule
 
 
-
 module instrMem (
-    input wire clk,
-    input wire rst,
     input wire [31:0] addr,
     output reg [31:0] data
 );
-    //reg [31:0] mem [0:(2**32)-1];
     reg [31:0] mem [0:31];
 
     initial begin
@@ -105,11 +98,7 @@ module instrMem (
         mem[9]  = 32'h90000099;
     end
 
-    always @(posedge clk or posedge rst) begin
-        if (rst)
-            data <= 32'b0;
-        else
-            data <= mem[addr >> 2];
+    always @(*) begin
+        data = mem[addr >> 2];
     end
 endmodule
-
